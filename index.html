@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAMEVAR // CYBER SCANNER & ANTI-CHEAT EXTRACTOR</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts: Orbitron & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Config for Custom Cyberpunk Colors & Fonts -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#060913',
+                            card: 'rgba(13, 19, 36, 0.75)',
+                            cyan: '#00f3ff',
+                            purple: '#b000ff',
+                            magenta: '#ff0077',
+                            green: '#00ff9d',
+                            amber: '#ffb700',
+                            darkBorder: '#1e293b'
+                        }
+                    },
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        rajdhani: ['Rajdhani', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 2s infinite alternate',
+                        'scanline': 'scanline 8s linear infinite',
+                        'laser': 'laser 2.5s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%': { boxShadow: '0 0 10px rgba(0,243,255,0.2)' },
+                            '100%': { boxShadow: '0 0 25px rgba(0,243,255,0.6)' }
+                        },
+                        scanline: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(1000%)' }
+                        },
+                        laser: {
+                            '0%': { opacity: '0.3', transform: 'scaleX(0.95)' },
+                            '100%': { opacity: '1', transform: 'scaleX(1.02)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #050811;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(0, 243, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(176, 0, 255, 0.08) 0%, transparent 40%),
+                linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+            color: #e2e8f0;
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Panels */
+        .cyber-glass {
+            background: rgba(10, 16, 31, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .cyber-glass-hover:hover {
+            border-color: rgba(0, 243, 255, 0.5);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.25);
+        }
+
+        /* Cyberpunk Scanline Effect Overlay */
+        .scanline-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0, 243, 255, 0.03) 50%,
+                rgba(0, 243, 255, 0.03)
+            );
+            background-size: 100% 4px;
+            z-index: 99;
+            opacity: 0.7;
+        }
+
+        /* Neon Glow Text Utilities */
+        .glow-cyan { text-shadow: 0 0 10px rgba(0, 243, 255, 0.7); }
+        .glow-purple { text-shadow: 0 0 10px rgba(176, 0, 255, 0.7); }
+        .glow-magenta { text-shadow: 0 0 10px rgba(255, 0, 119, 0.7); }
+        .glow-green { text-shadow: 0 0 10px rgba(0, 255, 157, 0.7); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #060913;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f3ff;
+            box-shadow: 0 0 10px #00f3ff;
+        }
+
+        /* Corner Tech Decorators */
+        .tech-corner-tl {
+            position: relative;
+        }
+        .tech-corner-tl::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: -1px;
+            width: 12px; height: 12px;
+            border-top: 2px solid #00f3ff;
+            border-left: 2px solid #00f3ff;
+        }
+        .tech-corner-br {
+            position: relative;
+        }
+        .tech-corner-br::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; right: -1px;
+            width: 12px; height: 12px;
+            border-bottom: 2px solid #b000ff;
+            border-right: 2px solid #b000ff;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-200 antialiased selection:bg-cyber-cyan selection:text-black">
+
+    <!-- Scanline Toggleable Overlay -->
+    <div id="scanlineOverlay" class="scanline-overlay"></div>
+
+    <!-- TOP HUD NAVIGATION -->
+    <header class="sticky top-0 z-50 cyber-glass border-b border-cyan-500/30 px-4 lg:px-8 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <!-- Logo & Status -->
+            <div class="flex items-center gap-3">
+                <div class="relative flex items-center justify-center w-10 h-10 rounded-lg bg-cyan-950/80 border border-cyber-cyan text-cyber-cyan shadow-[0_0_15px_rgba(0,243,255,0.4)]">
+                    <i class="fa-solid fa-shield-halved text-xl animate-pulse"></i>
+                    <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyber-green opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-cyber-green"></span>
+                    </span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-orbitron font-extrabold text-xl lg:text-2xl tracking-wider text-white">
+                            GAME<span class="text-cyber-cyan glow-cyan">VAR</span> // <span class="text-cyber-purple">CYBER</span>SCAN
+                        </h1>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 border border-cyan-500/40 text-cyber-cyan font-semibold">
+                            v4.2 PRO
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400 font-mono flex items-center gap-2">
+                        <span>SYS_STATUS: <span class="text-cyber-green">ONLINE</span></span>
+                        <span>•</span>
+                        <span>MEM_DECODER: <span class="text-cyber-cyan">ACTIVE</span></span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick Action Controls -->
+            <div class="flex items-center gap-3 w-full md:w-auto justify-end">
+                <!-- Sound FX Toggle -->
+                <button id="soundToggleBtn" onclick="toggleAudio()" class="px-3 py-1.5 rounded-md bg-slate-900 border border-slate-700 hover:border-cyber-cyan text-slate-300 hover:text-cyber-cyan text-xs font-mono transition-all flex items-center gap-2" title="Alternar efeitos sonoros">
+                    <i id="soundIcon" class="fa-solid fa-volume-high text-cyber-cyan"></i>
+                    <span id="soundLabel" class="hidden sm:inline">SFX: ON</span>
+                </button>
+
+                <!-- Scanlines Toggle -->
+                <button onclick="toggleScanline()" class="px-3 py-1.5 rounded-md bg-slate-900 border border-slate-700 hover:border-cyber-purple text-slate-300 hover:text-cyber-purple text-xs font-mono transition-all flex items-center gap-2" title="Efeito CRT Scanlines">
+                    <i class="fa-solid fa-tv text-cyber-purple"></i>
+                    <span class="hidden sm:inline">SCANLINES</span>
+                </button>
+
+                <!-- Load Sample Demo Button -->
+                <button onclick="loadDemoSample()" class="px-4 py-1.5 rounded-md bg-gradient-to-r from-cyber-cyan/20 to-cyber-purple/20 border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan hover:text-black font-orbitron text-xs font-bold transition-all shadow-[0_0_15px_rgba(0,243,255,0.2)] flex items-center gap-2">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>CARREGAR DEMO</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 space-y-6">
+
+        <!-- SYSTEM METRICS / HUD CARDS -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- Total Lines Card -->
+            <div class="cyber-glass tech-corner-tl p-4 rounded-xl relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 text-slate-800/40 text-6xl group-hover:text-cyan-500/10 transition-all">
+                    <i class="fa-solid fa-code"></i>
+                </div>
+                <div class="text-xs font-mono text-slate-400 uppercase tracking-widest">Linhas Lidas</div>
+                <div id="statTotalLines" class="text-2xl lg:text-3xl font-orbitron font-bold text-white mt-1">0</div>
+                <div class="text-[11px] font-mono text-slate-500 mt-1 flex items-center gap-1">
+                    <i class="fa-solid fa-file-lines text-cyber-cyan"></i> arquivo processado
+                </div>
+            </div>
+
+            <!-- Anti-Cheat Flags Card -->
+            <div class="cyber-glass p-4 rounded-xl relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 text-slate-800/40 text-6xl group-hover:text-green-500/10 transition-all">
+                    <i class="fa-solid fa-shield-virus"></i>
+                </div>
+                <div class="text-xs font-mono text-slate-400 uppercase tracking-widest">Anti-Cheat Flags</div>
+                <div id="statAntiCheat" class="text-2xl lg:text-3xl font-orbitron font-bold text-cyber-green mt-1 glow-green">0</div>
+                <div class="text-[11px] font-mono text-slate-500 mt-1 flex items-center gap-1">
+                    <i class="fa-solid fa-bug text-cyber-green"></i> regras de verificação
+                </div>
+            </div>
+
+            <!-- Offsets Hex Mapped -->
+            <div class="cyber-glass p-4 rounded-xl relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 text-slate-800/40 text-6xl group-hover:text-purple-500/10 transition-all">
+                    <i class="fa-solid fa-memory"></i>
+                </div>
+                <div class="text-xs font-mono text-slate-400 uppercase tracking-widest">Offsets Memória</div>
+                <div id="statOffsets" class="text-2xl lg:text-3xl font-orbitron font-bold text-cyber-purple mt-1 glow-purple">0</div>
+                <div class="text-[11px] font-mono text-slate-500 mt-1 flex items-center gap-1">
+                    <i class="fa-solid fa-microchip text-cyber-purple"></i> endereços Hex (0x...)
+                </div>
+            </div>
+
+            <!-- Crash & Ban Rules Card -->
+            <div class="cyber-glass tech-corner-br p-4 rounded-xl relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 text-slate-800/40 text-6xl group-hover:text-magenta-500/10 transition-all">
+                    <i class="fa-solid fa-ban"></i>
+                </div>
+                <div class="text-xs font-mono text-slate-400 uppercase tracking-widest">Crash & Blacklist</div>
+                <div id="statCrashBan" class="text-2xl lg:text-3xl font-orbitron font-bold text-cyber-magenta mt-1 glow-magenta">0</div>
+                <div class="text-[11px] font-mono text-slate-500 mt-1 flex items-center gap-1">
+                    <i class="fa-solid fa-skull text-cyber-magenta"></i> logs & ban triggers
+                </div>
+            </div>
+        </section>
+
+        <!-- FILE INPUT & DROPZONE SECTION -->
+        <section class="cyber-glass rounded-2xl p-6 relative overflow-hidden border border-cyan-500/30">
+            <!-- Decorative Laser Line -->
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyber-cyan to-transparent animate-laser"></div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                
+                <!-- Drag and Drop Box -->
+                <div class="lg:col-span-8">
+                    <div id="dropZone" 
+                         onclick="document.getElementById('fileInput').click()"
+                         ondragover="handleDragOver(event)"
+                         ondragleave="handleDragLeave(event)"
+                         ondrop="handleDrop(event)"
+                         class="border-2 border-dashed border-slate-700 hover:border-cyber-cyan rounded-xl p-8 text-center cursor-pointer transition-all bg-slate-950/40 hover:bg-slate-900/60 group">
+                        
+                        <input type="file" id="fileInput" class="hidden" accept=".cs,.txt,.json,.dump,.log,.cpp,.h,.hpp,.py" onchange="handleFileSelect(event)">
+                        
+                        <div class="flex flex-col items-center justify-center space-y-3">
+                            <div class="w-16 h-16 rounded-full bg-slate-900 border border-slate-700 group-hover:border-cyber-cyan group-hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] flex items-center justify-center text-cyber-cyan text-2xl transition-all">
+                                <i class="fa-solid fa-cloud-arrow-up group-hover:scale-110 transition-transform"></i>
+                            </div>
+                            <div>
+                                <p class="font-orbitron font-semibold text-white text-base">
+                                    Arraste e solte o arquivo aqui ou <span class="text-cyber-cyan underline underline-offset-4">Clique para Navegar</span>
+                                </p>
+                                <p class="text-xs text-slate-400 font-mono mt-1">
+                                    Suporta .cs, .txt, .dump, .json, .log (Dump IL2CPP, Unity, GameVar Core, AntiCheat)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Direct Paste or Quick Terminal Box -->
+                <div class="lg:col-span-4 flex flex-col h-full justify-between space-y-3">
+                    <div class="bg-slate-950/80 rounded-xl p-4 border border-slate-800 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-mono text-slate-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-terminal text-cyber-cyan"></i> PASTE DIRECT CODE
+                                </span>
+                                <span class="text-[10px] font-mono text-slate-500">RAW TEXT</span>
+                            </div>
+                            <textarea id="rawInputText" 
+                                      placeholder="Cole o código-fonte C#/Dump ou declaração de GameVar aqui para análise imediata..."
+                                      class="w-full h-24 bg-slate-900/90 border border-slate-800 rounded p-2 text-xs font-mono text-slate-300 focus:outline-none focus:border-cyber-cyan resize-none transition-colors"></textarea>
+                        </div>
+                        <button onclick="parseRawText()" class="mt-3 w-full py-2 bg-slate-900 hover:bg-cyber-cyan hover:text-black border border-cyan-500/40 text-cyber-cyan font-orbitron text-xs font-bold rounded transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-microchip"></i> ANALISAR CÓDIGO
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- CONTROLS & FILTERING BAR -->
+        <section class="cyber-glass rounded-xl p-4 space-y-4">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
+                
+                <!-- Search Box -->
+                <div class="relative w-full lg:w-96">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                    <input type="text" id="searchInput" oninput="applyFilters()" 
+                           placeholder="Pesquisar por GameVar, offset (0x172D), AntiCheat..."
+                           class="w-full bg-slate-950 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyber-cyan transition-all">
+                </div>
+
+                <!-- Category Tabs -->
+                <div class="flex items-center gap-1 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 font-mono text-xs">
+                    <button onclick="setCategory('ALL')" id="tab-ALL" class="cat-tab px-3 py-1.5 rounded-md bg-cyber-cyan text-black font-bold transition-all">
+                        TODOS (<span id="count-ALL">0</span>)
+                    </button>
+                    <button onclick="setCategory('AntiCheat')" id="tab-AntiCheat" class="cat-tab px-3 py-1.5 rounded-md bg-slate-900 text-slate-400 hover:text-cyber-green border border-transparent hover:border-slate-700 transition-all">
+                        🛡️ AntiCheat (<span id="count-AntiCheat">0</span>)
+                    </button>
+                    <button onclick="setCategory('GameVar')" id="tab-GameVar" class="cat-tab px-3 py-1.5 rounded-md bg-slate-900 text-slate-400 hover:text-cyber-cyan border border-transparent hover:border-slate-700 transition-all">
+                        ⚙️ GameVar (<span id="count-GameVar">0</span>)
+                    </button>
+                    <button onclick="setCategory('CrashReport')" id="tab-CrashReport" class="cat-tab px-3 py-1.5 rounded-md bg-slate-900 text-slate-400 hover:text-cyber-amber border border-transparent hover:border-slate-700 transition-all">
+                        💥 Crash (<span id="count-CrashReport">0</span>)
+                    </button>
+                    <button onclick="setCategory('Blacklist')" id="tab-Blacklist" class="cat-tab px-3 py-1.5 rounded-md bg-slate-900 text-slate-400 hover:text-cyber-magenta border border-transparent hover:border-slate-700 transition-all">
+                        🚫 Blacklist/Ban (<span id="count-Blacklist">0</span>)
+                    </button>
+                    <button onclick="setCategory('Offset')" id="tab-Offset" class="cat-tab px-3 py-1.5 rounded-md bg-slate-900 text-slate-400 hover:text-cyber-purple border border-transparent hover:border-slate-700 transition-all">
+                        📍 Hex Offsets (<span id="count-Offset">0</span>)
+                    </button>
+                </div>
+
+                <!-- Batch Actions (Export / Copy All) -->
+                <div class="flex items-center gap-2 w-full lg:w-auto justify-end">
+                    <button onclick="copyAllFiltered()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-cyber-cyan text-slate-300 text-xs font-mono rounded transition-all flex items-center gap-1.5">
+                        <i class="fa-regular fa-copy text-cyber-cyan"></i> Copiar Tudo
+                    </button>
+
+                    <div class="relative inline-block text-left group">
+                        <button class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-mono rounded transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-download text-cyber-green"></i> Baixar <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                        </button>
+                        <div class="hidden group-hover:block absolute right-0 mt-1 w-36 bg-slate-900 border border-slate-700 rounded-md shadow-xl z-20 overflow-hidden font-mono text-xs">
+                            <a href="#" onclick="exportData('cs')" class="block px-4 py-2 hover:bg-slate-800 text-slate-300 hover:text-cyber-cyan"><i class="fa-solid fa-file-code mr-1"></i> Formato .CS</a>
+                            <a href="#" onclick="exportData('json')" class="block px-4 py-2 hover:bg-slate-800 text-slate-300 hover:text-cyber-purple"><i class="fa-solid fa-file-json mr-1"></i> Formato .JSON</a>
+                            <a href="#" onclick="exportData('txt')" class="block px-4 py-2 hover:bg-slate-800 text-slate-300 hover:text-cyber-green"><i class="fa-solid fa-file-lines mr-1"></i> Formato .TXT</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- MAIN RESULTS CONTAINER / CODE VIEWER -->
+        <section class="cyber-glass rounded-2xl overflow-hidden border border-cyan-500/20">
+            <!-- Code Viewer Header Bar -->
+            <div class="bg-slate-950 px-6 py-3 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="flex space-x-1.5">
+                        <span class="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
+                        <span class="w-3 h-3 rounded-full bg-yellow-500/80 inline-block"></span>
+                        <span class="w-3 h-3 rounded-full bg-green-500/80 inline-block"></span>
+                    </div>
+                    <span id="fileTitleDisplay" class="font-mono text-xs text-slate-400">
+                        Nenhum arquivo carregado // Aguardando input...
+                    </span>
+                </div>
+                <div class="font-mono text-xs text-slate-500">
+                    EXIBINDO: <span id="visibleCount" class="text-cyber-cyan">0</span> ITENS
+                </div>
+            </div>
+
+            <!-- Scrollable Output Container -->
+            <div id="resultsList" class="divide-y divide-slate-800/60 max-h-[600px] overflow-y-auto bg-slate-950/60">
+                
+                <!-- EMPTY STATE PLACEHOLDER -->
+                <div id="emptyState" class="py-16 text-center space-y-4">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-900 border border-slate-800 text-slate-600 text-2xl">
+                        <i class="fa-solid fa-radar"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-orbitron font-semibold text-slate-300">Nenhum dado extraído ainda</h3>
+                        <p class="text-xs font-mono text-slate-500 mt-1 max-w-md mx-auto">
+                            Faça o upload de um arquivo `.cs` ou `dump.txt` ou clique em **CARREGAR DEMO** na barra superior para ver a varredura em ação.
+                        </p>
+                    </div>
+                    <button onclick="loadDemoSample()" class="px-4 py-2 rounded bg-slate-900 border border-cyber-cyan/50 text-cyber-cyan text-xs font-mono hover:bg-cyber-cyan hover:text-black transition-all">
+                        <i class="fa-solid fa-play mr-1"></i> Testar Exemplo GameVar agora
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- DETAILED CODE INSPECTOR MODAL -->
+    <div id="inspectorModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="cyber-glass max-w-3xl w-full rounded-2xl overflow-hidden border border-cyber-cyan shadow-[0_0_40px_rgba(0,243,255,0.2)] flex flex-col max-h-[90vh]">
+            
+            <!-- Modal Header -->
+            <div class="bg-slate-950 px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-microchip text-cyber-cyan"></i>
+                    <h3 class="font-orbitron font-bold text-white text-base">INSPECTOR DE VARIÁVEL GAMEVAR</h3>
+                </div>
+                <button onclick="closeInspectorModal()" class="text-slate-400 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="p-6 space-y-4 overflow-y-auto flex-1 font-mono text-xs">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-900/80 p-3 rounded border border-slate-800">
+                        <span class="text-slate-500 uppercase text-[10px]">Nome da Variável / Método</span>
+                        <div id="modalVarName" class="text-cyber-cyan font-bold text-sm truncate mt-0.5">-</div>
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded border border-slate-800">
+                        <span class="text-slate-500 uppercase text-[10px]">Offset de Memória Hex</span>
+                        <div id="modalOffset" class="text-cyber-purple font-bold text-sm mt-0.5">-</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-900/80 p-3 rounded border border-slate-800">
+                        <span class="text-slate-500 uppercase text-[10px]">Categoria Detectada</span>
+                        <div id="modalCategory" class="text-cyber-green font-bold text-xs mt-0.5">-</div>
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded border border-slate-800">
+                        <span class="text-slate-500 uppercase text-[10px]">Linha de Origem</span>
+                        <div id="modalLineNum" class="text-slate-300 font-bold text-xs mt-0.5">-</div>
+                    </div>
+                </div>
+
+                <!-- Full Code Block -->
+                <div class="space-y-1">
+                    <span class="text-slate-400 text-[10px] uppercase">Declaração Completa Extratada:</span>
+                    <div class="bg-slate-950 p-4 rounded border border-slate-800 text-slate-200 overflow-x-auto relative group">
+                        <pre id="modalRawCode" class="text-cyber-cyan"></pre>
+                    </div>
+                </div>
+
+                <!-- Context Hint Box -->
+                <div class="p-3 rounded bg-cyan-950/30 border border-cyan-500/20 text-slate-300 text-xs">
+                    <i class="fa-solid fa-circle-info text-cyber-cyan mr-1"></i>
+                    <span id="modalDescription">Esta variável controla rotinas de integridade e comunicação com o subsistema de proteção AntiCheat do servidor.</span>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-slate-950 px-6 py-3 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-[11px] font-mono text-slate-500">FORMATO DE SAÍDA: C# / IL2CPP STRUCT</span>
+                <button id="modalCopyBtn" onclick="" class="px-4 py-2 bg-cyber-cyan text-black font-orbitron font-bold text-xs rounded hover:bg-cyan-300 transition-all flex items-center gap-1.5">
+                    <i class="fa-regular fa-copy"></i> COPIAR CÓDIGO EXATO
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <script>
+        // GLOBAL STATE MANAGEMENT
+        let currentData = [];
+        let filteredData = [];
+        let activeCategory = 'ALL';
+        let isAudioMuted = false;
+        let audioCtx = null;
+
+        // SAMPLE DEMO CODE (GameVar + AntiCheat Dump)
+        const SAMPLE_GAMEVAR_CODE = `// GameVar AntiCheat & Crash System Memory Dump - Unity/IL2CPP Version 2024.3.1
+// Target: GameVarCore.dll / GameVar.AntiCheat.dll
+
+namespace GameVar.Security
+{
+    public static class GameVarConfig
+    {
+        // === GAMEVAR ANTI-CHEAT & INTEGRITY SETTINGS ===
+        public static bool EnableAntiCheatProtection; // 0x101A
+        public static bool GameVar_AntiCheat_Detection; // 0x2A1F
+        public static int MaxAllowedMemoryViolations = 3; // 0x1704
+        public static bool DetectSpeedHackEngine; // 0x18F0
+        public static bool EnableAssemblyHashValidation; // 0x18F4
+        public static string AntiCheatServerEndpoint = "https://ac.gamevar-security.net/verify"; // 0x1900
+        public static ulong IntegrityCheckIntervalMs = 5000; // 0x1928
+        
+        // === CRASH REPORT & TELEMETRY ===
+        public static bool EnableReportOutOfBoundsErrorLogs; // 0x172D
+        public static bool SendCrashDumpToRemoteServer; // 0x173E
+        public static bool AutoCaptureStacktraceOnFatal; // 0x1750
+        public static int MaxLogFileBufferSizeBytes = 1048576; // 0x1764
+        public static string GameVar_CrashReport_ApiKey = "gv_live_cr_992183881a"; // 0x1780
+        public static bool SilenceNonFatalExceptions; // 0x1792
+        
+        // === BLACKLIST & BAN SYSTEM VARS ===
+        public static bool EnableProcessBlacklistScanner; // 0x3010
+        public static string[] BlacklistedProcessNames = new string[] { "cheatengine.exe", "x64dbg.exe", "x32dbg.exe", "ida64.exe", "processhacker.exe" }; // 0x3024
+        public static bool AutoBanOnMemoryTampering; // 0x3050
+        public static bool SendHWIDBlacklistReport; // 0x3068
+        public static int BanThresholdSeverityScore = 100; // 0x3072
+        public static string BanNoticeRedirectUrl = "https://gamevar.net/banned"; // 0x3088
+        
+        // === GAMEVAR STATE & CORE OFFSETS ===
+        public static float GameVar_GlobalTimeScale = 1.0f; // 0x011C
+        public static bool GameVar_GodMode_InternalFlag = false; // 0x0130
+        public static bool GameVar_UnlimitedAmmo_InternalFlag = false; // 0x0134
+        public static int GameVar_PlayerLocalHealthOffset = 0x04F8; // 0x04F8
+        public static IntPtr GameVar_NetworkSessionManagerPointer; // 0x08C0
+        public static bool GameVar_DebugConsoleEnabled = false; // 0x0904
+        
+        // === SECURITY CALLBACK REGISTRY ===
+        public static bool RegisterAntiCheatCallback(IntPtr callbackFunction); // 0x5100
+        public static void TriggerInstantPermanentBan(string reasonCode, string hwidHash); // 0x5124
+        public static void DispatchCrashReportAsync(string exceptionType, string rawDump); // 0x5180
+    }
+}`;
+
+        // WEB AUDIO SYNTHESIZER FOR FUTURISTIC SOUND EFFECTS
+        function initAudioContext() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    audioCtx = new AudioContext();
+                }
+            }
+        }
+
+        function playSound(type) {
+            if (isAudioMuted) return;
+            try {
+                initAudioContext();
+                if (!audioCtx) return;
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'scan') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.linearRampToValueAtTime(1200, now + 0.2);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'copy') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                }
+            } catch (e) {
+                console.warn('Audio playback error:', e);
+            }
+        }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            const soundIcon = document.getElementById('soundIcon');
+            const soundLabel = document.getElementById('soundLabel');
+            
+            if (isAudioMuted) {
+                soundIcon.className = 'fa-solid fa-volume-xmark text-slate-500';
+                soundLabel.innerText = 'SFX: OFF';
+                showToast('Som desativado', 'info');
+            } else {
+                soundIcon.className = 'fa-solid fa-volume-high text-cyber-cyan';
+                soundLabel.innerText = 'SFX: ON';
+                playSound('click');
+                showToast('Som ativado', 'info');
+            }
+        }
+
+        function toggleScanline() {
+            const overlay = document.getElementById('scanlineOverlay');
+            if (overlay.style.display === 'none') {
+                overlay.style.display = 'block';
+                showToast('Efeito Scanlines ativado', 'info');
+            } else {
+                overlay.style.display = 'none';
+                showToast('Efeito Scanlines desativado', 'info');
+            }
+            playSound('click');
+        }
+
+        // CODE PARSER ENGINE & REGEX DETECTOR
+        function parseCodeContent(text, filename = "código_enviado.cs") {
+            playSound('scan');
+            document.getElementById('fileTitleDisplay').innerHTML = `
+                <i class="fa-solid fa-file-code text-cyber-cyan mr-1"></i> ${filename} 
+                <span class="text-slate-600">(${text.length} bytes)</span>
+            `;
+
+            const lines = text.split('\n');
+            const results = [];
+
+            // Keywords matching rule dictionary
+            const antiCheatKeywords = ['anticheat', 'cheat', 'detect', 'integrity', 'bypass', 'tamper', 'speedhack', 'hash', 'memoryguard', 'injection'];
+            const crashKeywords = ['crash', 'errorlog', 'stacktrace', 'dump', 'exception', 'report', 'telemetry', 'fatal'];
+            const blacklistKeywords = ['blacklist', 'ban', 'hwid', 'prohibited', 'forbidden', 'kick', 'sanction', 'blocklist'];
+            const gameVarKeywords = ['gamevar', 'var_', 'config', 'toggle', 'godmode', 'ammo', 'health', 'timeScale', 'setting'];
+
+            // Hex Offset Regex Pattern: matches // 0x172D or 0x011C etc.
+            const hexRegex = /0x[0-9A-Fa-f]{3,8}/;
+
+            lines.forEach((lineText, index) => {
+                const trimmed = lineText.trim();
+                
+                // Skip empty lines or pure comments without declarations/offsets
+                if (!trimmed || trimmed.startsWith('// ===') || trimmed.startsWith('/*')) return;
+
+                // Match Hex Offset
+                const offsetMatch = trimmed.match(hexRegex);
+                const offsetHex = offsetMatch ? offsetMatch[0] : null;
+
+                // Extract variable / method name if present
+                let varName = "Linha_Desconhecida";
+                const varMatch = trimmed.match(/(?:bool|int|float|string|double|ulong|uint|IntPtr|void|var|string\[\])\s+([A-Za-z0-9_]+)/);
+                if (varMatch && varMatch[1]) {
+                    varName = varMatch[1];
+                }
+
+                // Determine Category
+                let category = 'GameVar';
+                const lowerLine = trimmed.toLowerCase();
+
+                if (antiCheatKeywords.some(kw => lowerLine.includes(kw))) {
+                    category = 'AntiCheat';
+                } else if (crashKeywords.some(kw => lowerLine.includes(kw))) {
+                    category = 'CrashReport';
+                } else if (blacklistKeywords.some(kw => lowerLine.includes(kw))) {
+                    category = 'Blacklist';
+                } else if (gameVarKeywords.some(kw => lowerLine.includes(kw))) {
+                    category = 'GameVar';
+                } else if (offsetHex) {
+                    category = 'Offset';
+                }
+
+                // Build Extracted Data Object
+                if (trimmed.length > 5 && (offsetHex || varMatch || category !== 'GameVar')) {
+                    results.push({
+                        id: 'item_' + index,
+                        lineNumber: index + 1,
+                        rawLine: trimmed,
+                        varName: varName,
+                        offsetHex: offsetHex || 'N/A',
+                        category: category,
+                        isStatic: trimmed.includes('static'),
+                        isPublic: trimmed.includes('public')
+                    });
+                }
+            });
+
+            currentData = results;
+            updateMetrics(lines.length);
+            applyFilters();
+            
+            showToast(`${results.length} definições extraídas com sucesso!`, 'success');
+        }
+
+        // UPDATE METRICS COUNTERS
+        function updateMetrics(totalLines) {
+            document.getElementById('statTotalLines').innerText = totalLines || currentData.length;
+            
+            const antiCheatCount = currentData.filter(d => d.category === 'AntiCheat').length;
+            const offsetsCount = currentData.filter(d => d.offsetHex !== 'N/A').length;
+            const crashBanCount = currentData.filter(d => d.category === 'CrashReport' || d.category === 'Blacklist').length;
+            const gameVarCount = currentData.filter(d => d.category === 'GameVar').length;
+
+            document.getElementById('statAntiCheat').innerText = antiCheatCount;
+            document.getElementById('statOffsets').innerText = offsetsCount;
+            document.getElementById('statCrashBan').innerText = crashBanCount;
+
+            // Update tab badge counters
+            document.getElementById('count-ALL').innerText = currentData.length;
+            document.getElementById('count-AntiCheat').innerText = antiCheatCount;
+            document.getElementById('count-GameVar').innerText = gameVarCount;
+            document.getElementById('count-CrashReport').innerText = currentData.filter(d => d.category === 'CrashReport').length;
+            document.getElementById('count-Blacklist').innerText = currentData.filter(d => d.category === 'Blacklist').length;
+            document.getElementById('count-Offset').innerText = offsetsCount;
+        }
+
+        // FILTERING & CATEGORY SWITCHING
+        function setCategory(cat) {
+            activeCategory = cat;
+            
+            // Highlight active tab
+            document.querySelectorAll('.cat-tab').forEach(btn => {
+                btn.className = 'cat-tab px-3 py-1.5 rounded-md bg-slate-900 text-slate-400 border border-transparent transition-all';
+            });
+
+            const selectedTab = document.getElementById(`tab-${cat}`);
+            if (selectedTab) {
+                selectedTab.className = 'cat-tab px-3 py-1.5 rounded-md bg-cyber-cyan text-black font-bold transition-all';
+            }
+
+            playSound('click');
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+
+            filteredData = currentData.filter(item => {
+                // Category Filter
+                const matchesCategory = (activeCategory === 'ALL') || 
+                                        (activeCategory === 'Offset' && item.offsetHex !== 'N/A') || 
+                                        (item.category === activeCategory);
+
+                // Search Query Filter
+                const matchesSearch = item.rawLine.toLowerCase().includes(query) ||
+                                      item.varName.toLowerCase().includes(query) ||
+                                      item.offsetHex.toLowerCase().includes(query);
+
+                return matchesCategory && matchesSearch;
+            });
+
+            renderResults();
+        }
+
+        // RENDER CODE LIST RESULT ITEMS
+        function renderResults() {
+            const container = document.getElementById('resultsList');
+            const visibleCountEl = document.getElementById('visibleCount');
+
+            visibleCountEl.innerText = filteredData.length;
+
+            if (filteredData.length === 0) {
+                container.innerHTML = `
+                    <div class="py-12 text-center text-slate-500 font-mono text-xs">
+                        <i class="fa-solid fa-filter text-lg mb-2 block"></i>
+                        Nenhum resultado corresponde aos filtros selecionados.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredData.map(item => {
+                // Category badge colors
+                let categoryBadge = '';
+                if (item.category === 'AntiCheat') {
+                    categoryBadge = `<span class="px-2 py-0.5 rounded bg-green-950/80 border border-green-500/40 text-cyber-green text-[10px] font-mono">🛡️ AntiCheat</span>`;
+                } else if (item.category === 'CrashReport') {
+                    categoryBadge = `<span class="px-2 py-0.5 rounded bg-amber-950/80 border border-amber-500/40 text-cyber-amber text-[10px] font-mono">💥 CrashReport</span>`;
+                } else if (item.category === 'Blacklist') {
+                    categoryBadge = `<span class="px-2 py-0.5 rounded bg-pink-950/80 border border-pink-500/40 text-cyber-magenta text-[10px] font-mono">🚫 Blacklist</span>`;
+                } else {
+                    categoryBadge = `<span class="px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/40 text-cyber-cyan text-[10px] font-mono">⚙️ GameVar</span>`;
+                }
+
+                // Format Code Preview
+                const formattedCode = escapeHtml(item.rawLine)
+                    .replace(/(public|static|bool|int|float|string|double|ulong|uint|IntPtr|void|var)/g, '<span class="text-cyber-purple font-semibold">$1</span>')
+                    .replace(/\/\/\s*(0x[0-9A-Fa-f]+)/g, '<span class="text-cyber-green font-bold">// $1</span>');
+
+                return `
+                    <div class="p-3 lg:p-4 hover:bg-slate-900/80 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 group">
+                        
+                        <!-- Left Info Block -->
+                        <div class="flex items-start gap-3 flex-1 min-w-0">
+                            <span class="font-mono text-slate-600 text-xs w-8 text-right shrink-0 pt-0.5">
+                                #${item.lineNumber}
+                            </span>
+
+                            <div class="space-y-1 min-w-0 flex-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    ${categoryBadge}
+                                    ${item.offsetHex !== 'N/A' ? `<span class="font-mono text-[10px] px-1.5 py-0.5 bg-slate-900 border border-purple-500/40 text-cyber-purple rounded font-bold">${item.offsetHex}</span>` : ''}
+                                    <span class="font-mono text-xs font-semibold text-slate-200 truncate">${escapeHtml(item.varName)}</span>
+                                </div>
+                                <div class="font-mono text-xs text-slate-400 bg-slate-950 p-2 rounded border border-slate-900 overflow-x-auto group-hover:border-slate-800 transition-colors">
+                                    <code>${formattedCode}</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Action Buttons (GitHub Style) -->
+                        <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                            <button onclick="inspectItem('${item.id}')" class="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-cyber-cyan text-slate-300 text-xs font-mono rounded transition-all flex items-center gap-1" title="Inspecionar Detalhes">
+                                <i class="fa-solid fa-eye text-cyber-cyan"></i>
+                            </button>
+
+                            <button onclick="copyToClipboard('${escapeJsString(item.rawLine)}', 'Linha copiada!')" class="px-3 py-1.5 bg-slate-900 hover:bg-cyber-cyan hover:text-black border border-slate-700 hover:border-cyber-cyan text-slate-300 text-xs font-mono font-semibold rounded transition-all flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-regular fa-copy"></i> Copiar
+                            </button>
+                        </div>
+
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // INSPECTOR MODAL DISPLAY
+        function inspectItem(itemId) {
+            const item = currentData.find(d => d.id === itemId);
+            if (!item) return;
+
+            document.getElementById('modalVarName').innerText = item.varName;
+            document.getElementById('modalOffset').innerText = item.offsetHex;
+            document.getElementById('modalCategory').innerText = item.category;
+            document.getElementById('modalLineNum').innerText = `Linha #${item.lineNumber}`;
+            document.getElementById('modalRawCode').innerText = item.rawLine;
+            
+            document.getElementById('modalCopyBtn').onclick = () => {
+                copyToClipboard(item.rawLine, 'Código exato copiado!');
+                closeInspectorModal();
+            };
+
+            document.getElementById('inspectorModal').classList.remove('hidden');
+            playSound('click');
+        }
+
+        function closeInspectorModal() {
+            document.getElementById('inspectorModal').classList.add('hidden');
+        }
+
+        // FILE READERS AND DROPZONE HANDLERS
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) readFile(file);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            document.getElementById('dropZone').classList.add('border-cyber-cyan', 'bg-slate-900/80');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            document.getElementById('dropZone').classList.remove('border-cyber-cyan', 'bg-slate-900/80');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            document.getElementById('dropZone').classList.remove('border-cyber-cyan', 'bg-slate-900/80');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                readFile(e.dataTransfer.files[0]);
+            }
+        }
+
+        function readFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                parseCodeContent(e.target.result, file.name);
+            };
+            reader.readAsText(file);
+        }
+
+        function parseRawText() {
+            const text = document.getElementById('rawInputText').value;
+            if (!text.trim()) {
+                showToast('Cole algum código no campo antes de analisar.', 'error');
+                return;
+            }
+            parseCodeContent(text, "raw_pasted_code.cs");
+        }
+
+        function loadDemoSample() {
+            document.getElementById('rawInputText').value = SAMPLE_GAMEVAR_CODE;
+            parseCodeContent(SAMPLE_GAMEVAR_CODE, "GameVar_AntiCheat_MemoryDump.cs");
+        }
+
+        // CLIPBOARD COPY UTILITIES
+        function copyToClipboard(text, successMessage = "Copiado para a área de transferência!") {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            playSound('copy');
+            showToast(successMessage, 'success');
+        }
+
+        function copyAllFiltered() {
+            if (filteredData.length === 0) {
+                showToast('Nenhum item filtrado para copiar.', 'error');
+                return;
+            }
+
+            const combinedText = filteredData.map(d => d.rawLine).join('\n');
+            copyToClipboard(combinedText, `${filteredData.length} linhas copiadas!`);
+        }
+
+        // EXPORT DATA (CS, JSON, TXT)
+        function exportData(format) {
+            if (currentData.length === 0) {
+                showToast('Não há dados carregados para exportar.', 'error');
+                return;
+            }
+
+            let content = '';
+            let filename = `GameVar_Extracted_${Date.now()}.${format}`;
+            let mimeType = 'text/plain';
+
+            if (format === 'json') {
+                content = JSON.stringify(filteredData, null, 2);
+                mimeType = 'application/json';
+            } else if (format === 'cs') {
+                content = `// Extracted GameVar & AntiCheat Declarations\n// Generated by GameVar CyberScanner v4.2\n\nnamespace GameVar.Extracted {\n    public static class ExtractedDefs {\n`;
+                filteredData.forEach(item => {
+                    content += `        ${item.rawLine}\n`;
+                });
+                content += `    }\n}`;
+            } else {
+                content = `====================================================\nGAMEVAR CYBER SCANNER REPORT\nTotal Extracted: ${filteredData.length}\n====================================================\n\n`;
+                filteredData.forEach(item => {
+                    content += `[LINE #${item.lineNumber}] [${item.category}] [OFFSET: ${item.offsetHex}]\n${item.rawLine}\n\n`;
+                });
+            }
+
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            playSound('click');
+            showToast(`Arquivo baixado como .${format.toUpperCase()}`, 'success');
+        }
+
+        // CUSTOM CYBER TOAST NOTIFICATIONS
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+
+            let borderClass = 'border-cyber-cyan text-cyber-cyan';
+            let iconClass = 'fa-solid fa-circle-info';
+
+            if (type === 'success') {
+                borderClass = 'border-cyber-green text-cyber-green';
+                iconClass = 'fa-solid fa-circle-check';
+            } else if (type === 'error') {
+                borderClass = 'border-cyber-magenta text-cyber-magenta';
+                iconClass = 'fa-solid fa-circle-exclamation';
+            }
+
+            toast.className = `cyber-glass px-4 py-3 rounded-lg border ${borderClass} font-mono text-xs shadow-xl flex items-center gap-2 transform transition-all duration-300 translate-y-4 opacity-0 pointer-events-auto`;
+            toast.innerHTML = `<i class="${iconClass}"></i> <span>${escapeHtml(message)}</span>`;
+
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => {
+                    if (toast.parentNode) toast.parentNode.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        // ESCAPE HELPERS
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function escapeJsString(str) {
+            return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+        }
+
+        // AUTO-LOAD DEMO ON FIRST RUN
+        window.onload = function() {
+            loadDemoSample();
+        };
+    </script>
+</body>
+</html>
