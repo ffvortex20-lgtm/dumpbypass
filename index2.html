@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAMEVAR // DUMP.CS OVERRIDE GENERATOR (TypeDefIndex: 12022)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#050811',
+                            card: 'rgba(11, 17, 33, 0.85)',
+                            cyan: '#00f3ff',
+                            purple: '#b000ff',
+                            magenta: '#ff0077',
+                            green: '#00ff9d',
+                            amber: '#ffb700'
+                        }
+                    },
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        rajdhani: ['Rajdhani', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #050811;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(0, 243, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(176, 0, 255, 0.05) 0%, transparent 40%),
+                linear-gradient(to right, rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px;
+            color: #e2e8f0;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .cyber-glass {
+            background: rgba(11, 17, 33, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #050811; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f3ff; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-cyber-cyan selection:text-black">
+
+    <!-- HEADER HUD -->
+    <header class="sticky top-0 z-50 cyber-glass border-b border-cyan-500/30 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded bg-cyan-950/80 border border-cyber-cyan text-cyber-cyan flex items-center justify-center shadow-[0_0_15px_rgba(0,243,255,0.3)]">
+                    <i class="fa-solid fa-code text-xl animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="font-orbitron font-extrabold text-xl tracking-wider text-white">
+                        GAMEVAR <span class="text-cyber-cyan">// DUMP OVERRIDE GENERATOR</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-mono">
+                        TARGET: <span class="text-cyber-green">public class GameVarDef // TypeDefIndex: 12022</span>
+                    </p>
+                </div>
+            </div>
+
+            <button onclick="loadSampleDump()" class="px-4 py-2 rounded bg-gradient-to-r from-cyber-cyan/20 to-cyber-purple/20 border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan hover:text-black font-orbitron text-xs font-bold transition-all flex items-center gap-2">
+                <i class="fa-solid fa-vial"></i> CARREGAR DEMO GAMEVARDEF
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 space-y-6">
+
+        <!-- UPLOAD AND INPUT SECTION -->
+        <section class="cyber-glass rounded-2xl p-6 border border-cyan-500/30">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Dropzone -->
+                <div class="lg:col-span-7">
+                    <div id="dropZone" 
+                         onclick="document.getElementById('fileInput').click()"
+                         ondragover="e.preventDefault();"
+                         ondrop="handleDrop(event)"
+                         class="border-2 border-dashed border-slate-700 hover:border-cyber-cyan rounded-xl p-8 text-center cursor-pointer transition-all bg-slate-950/50 hover:bg-slate-900/60">
+                        
+                        <input type="file" id="fileInput" class="hidden" accept=".cs,.txt,.dump" onchange="handleFileSelect(event)">
+                        
+                        <div class="flex flex-col items-center justify-center space-y-3">
+                            <i class="fa-solid fa-file-import text-4xl text-cyber-cyan"></i>
+                            <div>
+                                <p class="font-orbitron font-semibold text-white">
+                                    Arraste e solte o <span class="text-cyber-cyan">dump.cs</span> aqui ou clique para selecionar
+                                </p>
+                                <p class="text-xs text-slate-400 font-mono mt-1">
+                                    O analisador busca apenas dentro do bloco GameVarDef (TypeDefIndex: 12022)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Raw Input Code -->
+                <div class="lg:col-span-5 flex flex-col justify-between space-y-2">
+                    <span class="text-xs font-mono text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-terminal text-cyber-cyan"></i> COLI O TRECHO DO DUMP.CS AQUI:
+                    </span>
+                    <textarea id="rawInputText" 
+                              placeholder="Cole aqui public class GameVarDef // TypeDefIndex: 12022..."
+                              class="w-full h-32 bg-slate-950 border border-slate-800 rounded p-3 text-xs font-mono text-slate-300 focus:outline-none focus:border-cyber-cyan resize-none"></textarea>
+                    <button onclick="parseRawText()" class="w-full py-2 bg-slate-900 hover:bg-cyber-cyan hover:text-black border border-cyan-500/40 text-cyber-cyan font-orbitron text-xs font-bold rounded transition-all">
+                        <i class="fa-solid fa-gear"></i> EXTRAIR E SINTETIZAR
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- CATEGORY PRESET TABS -->
+        <section class="cyber-glass rounded-xl p-4 flex flex-wrap items-center gap-2 justify-between">
+            <div class="flex flex-wrap gap-2 font-mono text-xs">
+                <button onclick="filterCategory('ALL')" id="tab-ALL" class="cat-btn px-3 py-2 rounded bg-cyber-cyan text-black font-bold">
+                    TODAS VARS (<span id="cnt-ALL">0</span>)
+                </button>
+                <button onclick="filterCategory('AIMLOCK')" id="tab-AIMLOCK" class="cat-btn px-3 py-2 rounded bg-slate-900 text-slate-300 border border-slate-700 hover:border-cyber-cyan">
+                    🎯 AIMLOCK (<span id="cnt-AIMLOCK">0</span>)
+                </button>
+                <button onclick="filterCategory('ESP')" id="tab-ESP" class="cat-btn px-3 py-2 rounded bg-slate-900 text-slate-300 border border-slate-700 hover:border-cyber-green">
+                    👁️ ESP / LINHA / BOX / VIDA (<span id="cnt-ESP">0</span>)
+                </button>
+                <button onclick="filterCategory('SPEED')" id="tab-SPEED" class="cat-btn px-3 py-2 rounded bg-slate-900 text-slate-300 border border-slate-700 hover:border-cyber-amber">
+                    🚀 SPEED PLAYER (NO BUG) (<span id="cnt-SPEED">0</span>)
+                </button>
+                <button onclick="filterCategory('NORECOIL')" id="tab-NORECOIL" class="cat-btn px-3 py-2 rounded bg-slate-900 text-slate-300 border border-slate-700 hover:border-cyber-purple">
+                    💥 NO RECOIL (<span id="cnt-NORECOIL">0</span>)
+                </button>
+                <button onclick="filterCategory('RESETGUEST')" id="tab-RESETGUEST" class="cat-btn px-3 py-2 rounded bg-slate-900 text-slate-300 border border-slate-700 hover:border-cyber-magenta">
+                    🆔 RESET GUEST (<span id="cnt-RESETGUEST">0</span>)
+                </button>
+            </div>
+
+            <button onclick="generateConfigOutput()" class="px-4 py-2 bg-cyber-green text-black font-orbitron font-bold text-xs rounded hover:bg-green-400 transition-all flex items-center gap-2">
+                <i class="fa-solid fa-code"></i> GERAR OVERRIDES FORMATADOS
+            </button>
+        </section>
+
+        <!-- OUTPUT GENERATOR & CODE RESULTS -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Extracted Vars List -->
+            <div class="lg:col-span-6 cyber-glass rounded-2xl p-4 border border-cyan-500/20 max-h-[600px] flex flex-col">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <span class="font-orbitron text-xs text-slate-300 font-bold">VARIÁVEIS DETECTADAS EM GameVarDef</span>
+                    <span id="varsFoundCount" class="font-mono text-xs text-cyber-cyan">0 ITENS</span>
+                </div>
+                <div id="varsContainer" class="flex-1 overflow-y-auto divide-y divide-slate-800/60 mt-2 pr-1 space-y-1">
+                    <div class="text-center text-slate-500 font-mono text-xs py-10">
+                        Carregue um dump.cs ou clique em "CARREGAR DEMO".
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generated Override Object Result -->
+            <div class="lg:col-span-6 cyber-glass rounded-2xl p-4 border border-purple-500/20 flex flex-col max-h-[600px]">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <span class="font-orbitron text-xs text-slate-300 font-bold">CÓDIGO GERADO (FORMATO OVERRIDES)</span>
+                    <button onclick="copyGeneratedCode()" class="px-3 py-1 bg-slate-900 hover:bg-cyber-cyan hover:text-black border border-cyan-500/40 text-cyber-cyan font-mono text-xs rounded transition-all flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i> COPIAR ESTRUTURA
+                    </button>
+                </div>
+                <div class="flex-1 overflow-hidden mt-3 relative bg-slate-950 rounded p-4 border border-slate-800">
+                    <pre id="outputCodeDisplay" class="font-mono text-xs text-cyber-cyan overflow-auto h-full w-full">
+// Selecione uma categoria ou clique em "GERAR OVERRIDES FORMATADOS"
+                    </pre>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        let extractedVars = [];
+        let currentFilter = 'ALL';
+
+        // DEMO DUMP FOR TESTING (Includes GameVarDef // TypeDefIndex: 12022)
+        const SAMPLE_DUMP_CS = `
+// Namespace: 
+// [RequiredByNativeCodeAttribute] // RVA: 0x0 Offset: 0x0 VA: 0x0
+public class GameVarDef // TypeDefIndex: 12022
+{
+    // Fields
+    public static float SensitivityMaxSetting = 9.0f; // 0x10
+    public static float Sensitivity1PMaxSetting = 9.0f; // 0x14
+    public static float X1ScopeMaxSetting = 9.0f; // 0x18
+    public static float X2ScopeMaxSetting = 9.0f; // 0x1C
+    public static float X4ScopeMaxSetting = 9.0f; // 0x20
+    public static float X8ScopeMaxSetting = 9.0f; // 0x24
+    public static float FreeLookMaxSetting = 9.0f; // 0x28
+
+    // AIMLOCK VARS
+    public static bool EnableAutoAimLock = true; // 0x2C
+    public static float AimLockFovRadius = 180.0f; // 0x30
+    public static float AimLockSmoothness = 0.0f; // 0x34
+    public static int AimTargetBoneHead = 1; // 0x38
+
+    // ESP VARS (BOX, LINHA, VIDA)
+    public static bool EnableEspBoxDrawing = true; // 0x3C
+    public static bool EnableEspLineTracer = true; // 0x40
+    public static bool EnableEspHealthBar = true; // 0x44
+    public static bool EnableEspSkeletonLine = true; // 0x48
+    public static float EspMaxDistanceLimit = 500.0f; // 0x4C
+
+    // SPEED PLAYER VARS (NO BUG)
+    public static float PlayerMoveSpeedMultiplier = 1.35f; // 0x50
+    public static float PlayerSprintSpeedLimit = 1.35f; // 0x54
+    public static bool EnableFastSpeedWithoutGlitch = true; // 0x58
+
+    // NO RECOIL VARS
+    public static float WeaponRecoilForceScale = 0.0f; // 0x5C
+    public static float WeaponSpreadAngleScale = 0.0f; // 0x60
+    public static bool DisableCameraShakeOnFire = true; // 0x64
+
+    // RESET GUEST VARS
+    public static bool EnableGuestAccountReset = true; // 0x68
+    public static string GuestDeviceUUIDOverride = ""; // 0x6C
+    public static bool ForceClearGuestDataKey = true; // 0x70
+}
+`;
+
+        function parseDumpContent(text) {
+            extractedVars = [];
+            
+            // Regex to target public class GameVarDef // TypeDefIndex: 12022 specifically
+            const classRegex = /class\s+GameVarDef[^{]*\{([\s\S]*?)\n\}/;
+            const match = classRegex.exec(text);
+
+            let contentToParse = text;
+            if (match && match[1]) {
+                contentToParse = match[1];
+            }
+
+            // Regex for C# fields inside the class
+            // Example: public static float SensitivityMaxSetting = 9.0f; // 0x10
+            const fieldRegex = /(?:public|private|protected|internal)?\s*(?:static|readonly|const)?\s*([A-Za-z0-9_<>]+)\s+([A-Za-z0-9_]+)(?:\s*=\s*([^;]+))?;/g;
+            
+            let fieldMatch;
+            while ((fieldMatch = fieldRegex.exec(contentToParse)) !== null) {
+                const varType = cleanType(fieldMatch[1]);
+                const varName = fieldMatch[2];
+                let defaultValue = fieldMatch[3] ? fieldMatch[3].replace(/f|F|;/g, '').trim() : getDefaultValueForType(varType);
+
+                // Ignore class keywords
+                if (['class', 'struct', 'enum', 'return'].includes(varType)) continue;
+
+                const category = classifyVar(varName);
+
+                extractedVars.push({
+                    name: varName,
+                    type: varType,
+                    defaultValue: defaultValue,
+                    category: category,
+                    overrideValue: getSuggestedOverride(varName, varType, category, defaultValue)
+                });
+            }
+
+            updateCounts();
+            renderVarsList();
+            generateConfigOutput();
+        }
+
+        function cleanType(typeStr) {
+            typeStr = typeStr.toLowerCase();
+            if (typeStr.includes('float')) return 'float';
+            if (typeStr.includes('int') || typeStr.includes('long')) return 'int';
+            if (typeStr.includes('bool')) return 'bool';
+            if (typeStr.includes('string')) return 'string';
+            return typeStr;
+        }
+
+        function getDefaultValueForType(type) {
+            if (type === 'float') return '1.0';
+            if (type === 'bool') return 'true';
+            if (type === 'int') return '1';
+            return '0';
+        }
+
+        function classifyVar(name) {
+            const lower = name.toLowerCase();
+            if (lower.includes('aim') || lower.includes('lock') || lower.includes('fov') || lower.includes('smooth') || lower.includes('sensi')) return 'AIMLOCK';
+            if (lower.includes('esp') || lower.includes('box') || lower.includes('line') || lower.includes('health') || lower.includes('vida') || lower.includes('tracer') || lower.includes('skeleton')) return 'ESP';
+            if (lower.includes('speed') || lower.includes('move') || lower.includes('sprint') || lower.includes('run') || lower.includes('walk')) return 'SPEED';
+            if (lower.includes('recoil') || lower.includes('spread') || lower.includes('shake') || lower.includes('sway')) return 'NORECOIL';
+            if (lower.includes('guest') || lower.includes('device') || lower.includes('uuid') || lower.includes('reset') || lower.includes('hwid')) return 'RESETGUEST';
+            return 'AIMLOCK';
+        }
+
+        function getSuggestedOverride(name, type, category, currentDef) {
+            const lower = name.toLowerCase();
+            if (type === 'bool') return 'true';
+            
+            if (category === 'NORECOIL') return '0.0';
+            if (category === 'SPEED') return '1.35'; // Max safe speed to avoid bug/lagback
+            if (category === 'AIMLOCK') {
+                if (lower.includes('sensi')) return '9.0';
+                if (lower.includes('fov')) return '180.0';
+                if (lower.includes('smooth')) return '0.0';
+                return '1.0';
+            }
+            if (category === 'ESP') {
+                if (lower.includes('dist')) return '500.0';
+                return '1.0';
+            }
+            return currentDef || '1.0';
+        }
+
+        function updateCounts() {
+            document.getElementById('cnt-ALL').innerText = extractedVars.length;
+            document.getElementById('cnt-AIMLOCK').innerText = extractedVars.filter(v => v.category === 'AIMLOCK').length;
+            document.getElementById('cnt-ESP').innerText = extractedVars.filter(v => v.category === 'ESP').length;
+            document.getElementById('cnt-SPEED').innerText = extractedVars.filter(v => v.category === 'SPEED').length;
+            document.getElementById('cnt-NORECOIL').innerText = extractedVars.filter(v => v.category === 'NORECOIL').length;
+            document.getElementById('cnt-RESETGUEST').innerText = extractedVars.filter(v => v.category === 'RESETGUEST').length;
+            document.getElementById('varsFoundCount').innerText = `${extractedVars.length} ITENS`;
+        }
+
+        function filterCategory(cat) {
+            currentFilter = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.className = 'cat-btn px-3 py-2 rounded bg-slate-900 text-slate-300 border border-slate-700 hover:border-cyber-cyan font-mono text-xs';
+            });
+            const selBtn = document.getElementById(`tab-${cat}`);
+            if (selBtn) selBtn.className = 'cat-btn px-3 py-2 rounded bg-cyber-cyan text-black font-bold font-mono text-xs';
+            
+            renderVarsList();
+            generateConfigOutput();
+        }
+
+        function renderVarsList() {
+            const container = document.getElementById('varsContainer');
+            const items = currentFilter === 'ALL' ? extractedVars : extractedVars.filter(v => v.category === currentFilter);
+
+            if (items.length === 0) {
+                container.innerHTML = `<div class="text-center text-slate-500 font-mono text-xs py-8">Nenhuma variável encontrada nesta categoria.</div>`;
+                return;
+            }
+
+            container.innerHTML = items.map((item, idx) => `
+                <div class="p-2.5 rounded bg-slate-950/60 border border-slate-800 flex items-center justify-between gap-3 text-xs font-mono">
+                    <div class="min-w-0 flex-1">
+                        <div class="text-cyber-cyan font-bold truncate">${item.name}</div>
+                        <div class="text-slate-500 text-[10px]">Type: <span class="text-cyber-purple">${item.type}</span> | Cat: ${item.category}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-slate-400 text-[10px]">Val:</span>
+                        <input type="text" value="${item.overrideValue}" onchange="updateOverrideValue('${item.name}', this.value)" 
+                               class="w-20 bg-slate-900 border border-slate-700 rounded px-2 py-0.5 text-center text-cyber-green focus:outline-none focus:border-cyber-cyan">
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateOverrideValue(varName, val) {
+            const item = extractedVars.find(v => v.name === varName);
+            if (item) {
+                item.overrideValue = val;
+                generateConfigOutput();
+            }
+        }
+
+        function generateConfigOutput() {
+            const display = document.getElementById('outputCodeDisplay');
+            const items = currentFilter === 'ALL' ? extractedVars : extractedVars.filter(v => v.category === currentFilter);
+
+            if (items.length === 0) {
+                display.innerText = "// Nenhuma variável disponível para geração.";
+                return;
+            }
+
+            let categoryHeader = currentFilter === 'ALL' ? 'GAMEVARDEF_ALL_OVERRIDES' : `${currentFilter}_OVERRIDES`;
+            let code = `${categoryHeader} = {\n`;
+
+            items.forEach((item, index) => {
+                const isLast = index === items.length - 1;
+                code += `    "${item.name}": {"var_type": "${item.type}", "var_value": "${item.overrideValue}"}${isLast ? '' : ','}\n`;
+            });
+
+            code += `}`;
+            display.innerText = code;
+        }
+
+        function copyGeneratedCode() {
+            const code = document.getElementById('outputCodeDisplay').innerText;
+            navigator.clipboard.writeText(code);
+            alert("Estrutura de overrides copiada com sucesso!");
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (evt) => parseDumpContent(evt.target.result);
+                reader.readAsText(file);
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (evt) => parseDumpContent(evt.target.result);
+                reader.readAsText(e.dataTransfer.files[0]);
+            }
+        }
+
+        function parseRawText() {
+            const val = document.getElementById('rawInputText').value;
+            if (val.trim()) parseDumpContent(val);
+        }
+
+        function loadSampleDump() {
+            document.getElementById('rawInputText').value = SAMPLE_DUMP_CS;
+            parseDumpContent(SAMPLE_DUMP_CS);
+        }
+
+        window.onload = function() {
+            loadSampleDump();
+        };
+    </script>
+</body>
+</html>
