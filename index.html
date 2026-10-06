@@ -633,79 +633,104 @@ namespace GameVar.Security
             playSound('click');
         }
 
-        // CODE PARSER ENGINE & REGEX DETECTOR
+        // CODE PARSER ENGINE — STRICT DUMP EXTRACTION
+        // Importante: este parser nunca cria offsets/códigos. Ele só exibe o texto que
+        // realmente existe no dump e limita a leitura à classe GameVarDef.
         function parseCodeContent(text, filename = "código_enviado.cs") {
             playSound('scan');
             document.getElementById('fileTitleDisplay').innerHTML = `
-                <i class="fa-solid fa-file-code text-cyber-cyan mr-1"></i> ${filename} 
+                <i class="fa-solid fa-file-code text-cyber-cyan mr-1"></i> ${escapeHtml(filename)}
                 <span class="text-slate-600">(${text.length} bytes)</span>
             `;
 
-            const lines = text.split('\n');
+            const lines = text.replace(/\r\n?/g, '\n').split('\n');
             const results = [];
+            const classRegex = /\b(?:public\s+)?(?:sealed\s+|abstract\s+|static\s+)*class\s+GameVarDef\b/;
+            const typeIndexRegex = /\bTypeDefIndex\s*:\s*12022\b/i;
+            const declarationRegex = /^(?:public|private|protected|internal)?\s*(?:static|readonly|const|virtual|abstract|sealed|extern|unsafe|partial)?(?:\s+(?:static|readonly|const|virtual|abstract|sealed|extern|unsafe|partial))*\s*(?:bool|byte|sbyte|short|ushort|int|uint|long|ulong|float|double|decimal|char|string|object|IntPtr|[A-Za-z_]\w*)(?:\s*<[^>]+>)?(?:\[\])?\s+([A-Za-z_]\w*)\s*(\([^;{}]*\))?\s*(?:=[^;]*)?;\s*(?:\/\/\s*(0x[0-9A-Fa-f]{1,8}))?\s*$/;
 
-            // Keywords matching rule dictionary
-            const antiCheatKeywords = ['anticheat', 'cheat', 'detect', 'integrity', 'bypass', 'tamper', 'speedhack', 'hash', 'memoryguard', 'injection'];
-            const crashKeywords = ['crash', 'errorlog', 'stacktrace', 'dump', 'exception', 'report', 'telemetry', 'fatal'];
-            const blacklistKeywords = ['blacklist', 'ban', 'hwid', 'prohibited', 'forbidden', 'kick', 'sanction', 'blocklist'];
-            const gameVarKeywords = ['gamevar', 'var_', 'config', 'toggle', 'godmode', 'ammo', 'health', 'timeScale', 'setting'];
+            // Termos são avaliados apenas no nome da declaração, nunca em comentários,
+            // URLs, números ou linhas arbitrárias.
+            const categoryRules = [
+                ['AntiCheat', /anti.?cheat|integrity|tamper|speed.?hack|memory.?guard|injection|detect|hash/i],
+                ['CrashReport', /crash|error|stack.?trace|exception|dump|report|telemetry|fatal/i],
+                ['Blacklist', /blacklist|blocklist|ban|hwid|prohibit|forbidden|kick|sanction|punish|puni/i],
+                ['GameVar', /game.?var|config|toggle|god.?mode|ammo|health|time.?scale|setting/i]
+            ];
 
-            // Hex Offset Regex Pattern: matches // 0x172D or 0x011C etc.
-            const hexRegex = /0x[0-9A-Fa-f]{3,8}/;
+            let inGameVarDef = false;
+            let classDepth = 0;
+            let foundGameVarDef = false;
+            let foundTypeIndex = false;
+            const previousLines = [];
 
             lines.forEach((lineText, index) => {
                 const trimmed = lineText.trim();
-                
-                // Skip empty lines or pure comments without declarations/offsets
-                if (!trimmed || trimmed.startsWith('// ===') || trimmed.startsWith('/*')) return;
+                if (!trimmed) return;
 
-                // Match Hex Offset
-                const offsetMatch = trimmed.match(hexRegex);
-                const offsetHex = offsetMatch ? offsetMatch[0] : null;
-
-                // Extract variable / method name if present
-                let varName = "Linha_Desconhecida";
-                const varMatch = trimmed.match(/(?:bool|int|float|string|double|ulong|uint|IntPtr|void|var|string\[\])\s+([A-Za-z0-9_]+)/);
-                if (varMatch && varMatch[1]) {
-                    varName = varMatch[1];
+                if (!inGameVarDef && classRegex.test(trimmed)) {
+                    inGameVarDef = true;
+                    foundGameVarDef = true;
+                    foundTypeIndex = Boolean(
+                        typeIndexRegex.test(trimmed) ||
+                        previousLines.slice(-5).some(line => typeIndexRegex.test(line))
+                    );
+                    classDepth = 0;
                 }
 
-                // Determine Category
-                let category = 'GameVar';
-                const lowerLine = trimmed.toLowerCase();
+                if (!inGameVarDef) return;
 
-                if (antiCheatKeywords.some(kw => lowerLine.includes(kw))) {
-                    category = 'AntiCheat';
-                } else if (crashKeywords.some(kw => lowerLine.includes(kw))) {
-                    category = 'CrashReport';
-                } else if (blacklistKeywords.some(kw => lowerLine.includes(kw))) {
-                    category = 'Blacklist';
-                } else if (gameVarKeywords.some(kw => lowerLine.includes(kw))) {
-                    category = 'GameVar';
-                } else if (offsetHex) {
-                    category = 'Offset';
-                }
+                if (typeIndexRegex.test(trimmed)) foundTypeIndex = true;
 
-                // Build Extracted Data Object
-                if (trimmed.length > 5 && (offsetHex || varMatch || category !== 'GameVar')) {
+                // Conta chaves antes de extrair a declaração para aceitar dumps
+                // com a chave na linha da classe ou na linha seguinte.
+                classDepth += (lineText.match(/{/g) || []).length;
+                classDepth -= (lineText.match(/}/g) || []).length;
+
+                const match = trimmed.match(declarationRegex);
+                if (match) {
+                    const varName = match[1];
+                    const signature = match[2] || '';
+                    const offsetHex = match[3] ? match[3].toUpperCase() : 'N/A';
+                    const lowerName = varName.toLowerCase();
+                    let category = 'GameVar';
+                    for (const [name, rule] of categoryRules) {
+                        if (rule.test(lowerName)) {
+                            category = name;
+                            break;
+                        }
+                    }
+
                     results.push({
-                        id: 'item_' + index,
+                        id: `item_${index}`,
                         lineNumber: index + 1,
                         rawLine: trimmed,
-                        varName: varName,
-                        offsetHex: offsetHex || 'N/A',
-                        category: category,
-                        isStatic: trimmed.includes('static'),
-                        isPublic: trimmed.includes('public')
+                        varName,
+                        signature,
+                        offsetHex,
+                        category,
+                        isStatic: /\bstatic\b/.test(trimmed),
+                        isPublic: /^public\b/.test(trimmed)
                     });
                 }
+
+                if (classDepth <= 0 && /}/.test(lineText)) inGameVarDef = false;
+                previousLines.push(trimmed);
+                if (previousLines.length > 5) previousLines.shift();
             });
 
             currentData = results;
             updateMetrics(lines.length);
             applyFilters();
-            
-            showToast(`${results.length} definições extraídas com sucesso!`, 'success');
+
+            if (!foundGameVarDef) {
+                showToast('GameVarDef não encontrada. Nenhum código foi inventado.', 'error');
+                return;
+            }
+            if (!foundTypeIndex) {
+                showToast('GameVarDef encontrada, mas TypeDefIndex: 12022 não foi confirmado.', 'info');
+            }
+            showToast(`${results.length} declarações reais extraídas de GameVarDef.`, 'success');
         }
 
         // UPDATE METRICS COUNTERS
@@ -1021,9 +1046,11 @@ namespace GameVar.Security
             return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
         }
 
-        // AUTO-LOAD DEMO ON FIRST RUN
+        // Não carregar dados fictícios automaticamente. O usuário deve selecionar
+        // o dump.cs real para evitar offsets/códigos que não existem no arquivo.
         window.onload = function() {
-            loadDemoSample();
+            updateMetrics(0);
+            applyFilters();
         };
     </script>
 </body>
